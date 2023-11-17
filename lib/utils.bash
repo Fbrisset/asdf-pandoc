@@ -53,7 +53,11 @@ download_release() {
 		ext="zip"
 	fi
 
-	url="$GH_REPO/releases/download/${version}/${TOOL_NAME}-${version}-${os}-${arch}.${ext}"
+	if [[ "$os" == "macOS" ]]; then
+		url="$GH_REPO/releases/download/${version}/${TOOL_NAME}-${version}-${arch}-${os}.${ext}"
+	else
+		url="$GH_REPO/releases/download/${version}/${TOOL_NAME}-${version}-${os}-${arch}.${ext}"
+	fi
 
 	echo "* Downloading $TOOL_NAME release $version..."
 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
