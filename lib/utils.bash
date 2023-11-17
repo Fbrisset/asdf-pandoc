@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-# TODO: Ensure this is the correct GitHub homepage where releases can be downloaded for pandoc.
 GH_REPO="https://github.com/jgm/pandoc"
 TOOL_NAME="pandoc"
 TOOL_TEST="pandoc --help"
@@ -31,18 +30,26 @@ list_github_tags() {
 }
 
 list_all_versions() {
-	# TODO: Adapt this. By default we simply list the tag names from GitHub releases.
-	# Change this function if pandoc has other means of determining installable versions.
-	list_github_tags
+	for tag in $(list_github_tags); do
+		# Filter tags
+		if [[ $tag =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+			printf "%s\n" "$tag"
+		fi
+	done
 }
 
 download_release() {
-	local version filename url
+	local version filename url os arch
 	version="$1"
 	filename="$2"
+	os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+	arch="$(uname -m)"
 
-	# TODO: Adapt the release URL convention for pandoc
-	url="$GH_REPO/archive/v${version}.tar.gz"
+	if [[ "$arch" == "x86_64" ]]; then
+		arch="amd64"
+	fi
+
+	url="$GH_REPO/releases/download/${version}/${TOOL_NAME}-${version}-${os}-${arch}.tar.gz"
 
 	echo "* Downloading $TOOL_NAME release $version..."
 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
@@ -59,9 +66,8 @@ install_version() {
 
 	(
 		mkdir -p "$install_path"
-		cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
+		cp -r "$ASDF_DOWNLOAD_PATH"/bin/* "$install_path"
 
-		# TODO: Assert pandoc executable exists.
 		local tool_cmd
 		tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
 		test -x "$install_path/$tool_cmd" || fail "Expected $install_path/$tool_cmd to be executable."
