@@ -39,17 +39,21 @@ list_all_versions() {
 }
 
 download_release() {
-	local version filename url os arch
+	local version filename url os arch ext
 	version="$1"
 	filename="$2"
 	os="$(uname -s | tr '[:upper:]' '[:lower:]')"
 	arch="$(uname -m)"
+	ext="tar.gz"
 
-	if [[ "$arch" == "x86_64" ]]; then
+	if [[ "$arch" == "x86_64" && "$os" == "linux" ]]; then
 		arch="amd64"
+	elif [[ "$arch" == "darwin" ]]; then
+		os="macOS"
+		ext="zip"
 	fi
 
-	url="$GH_REPO/releases/download/${version}/${TOOL_NAME}-${version}-${os}-${arch}.tar.gz"
+	url="$GH_REPO/releases/download/${version}/${TOOL_NAME}-${version}-${os}-${arch}.${ext}"
 
 	echo "* Downloading $TOOL_NAME release $version..."
 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
