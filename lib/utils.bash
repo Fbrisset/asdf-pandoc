@@ -48,7 +48,7 @@ download_release() {
 
 	if [[ "$arch" == "x86_64" && "$os" == "linux" ]]; then
 		arch="amd64"
-	elif [[ "$arch" == "darwin" ]]; then
+	elif [[ "$os" == "darwin" ]]; then
 		os="macOS"
 		ext="zip"
 	fi
