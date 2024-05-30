@@ -12,7 +12,7 @@ mkdir -p "$ASDF_DOWNLOAD_PATH"
 
 ext="tar.gz"
 
-if [[ "$(uname -m)" == "darwin" ]];then
+if [[ "$(uname -m)" == "darwin" ]]; then
 	ext="zip"
 fi
 
@@ -21,7 +21,7 @@ release_file="$ASDF_DOWNLOAD_PATH/$TOOL_NAME-$ASDF_INSTALL_VERSION.${ext}"
 # Download tar.gz file to the download directory
 download_release "$ASDF_INSTALL_VERSION" "$release_file"
 
-if [[ "$ext" == "zip" ]];then
+if [[ "$ext" == "zip" ]]; then
 	unzip -qj "$release_file" -d "$ASDF_DOWNLOAD_PATH/bin" || fail "Could not extract $release_file"
 else
 	#  Extract contents of tar.gz file into the download directory
