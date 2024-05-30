@@ -10,13 +10,23 @@ source "${plugin_dir}/lib/utils.bash"
 
 mkdir -p "$ASDF_DOWNLOAD_PATH"
 
-release_file="$ASDF_DOWNLOAD_PATH/$TOOL_NAME-$ASDF_INSTALL_VERSION.tar.gz"
+ext="tar.gz"
+
+if [[ "$(uname -m)" == "darwin" ]];then
+	ext="zip"
+fi
+
+release_file="$ASDF_DOWNLOAD_PATH/$TOOL_NAME-$ASDF_INSTALL_VERSION.${ext}"
 
 # Download tar.gz file to the download directory
 download_release "$ASDF_INSTALL_VERSION" "$release_file"
 
-#  Extract contents of tar.gz file into the download directory
-tar -xzf "$release_file" -C "$ASDF_DOWNLOAD_PATH" --strip-components=1 || fail "Could not extract $release_file"
+if [[ "$ext" == "zip" ]];then
+	unzip -qj "$release_file" -d "$ASDF_DOWNLOAD_PATH/bin" || fail "Could not extract $release_file"
+else
+	#  Extract contents of tar.gz file into the download directory
+	tar -xzf "$release_file" -C "$ASDF_DOWNLOAD_PATH" --strip-components=1 || fail "Could not extract $release_file"
+fi
 
 # Remove the tar.gz file since we don't need to keep it
 rm "$release_file"
