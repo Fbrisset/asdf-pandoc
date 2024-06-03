@@ -2,9 +2,10 @@
 
 set -euo pipefail
 
+# TODO: Ensure this is the correct GitHub homepage where releases can be downloaded for pandoc.
 GH_REPO="https://github.com/jgm/pandoc"
 TOOL_NAME="pandoc"
-TOOL_TEST="pandoc --help"
+TOOL_TEST="pandoc --version"
 
 fail() {
 	echo -e "asdf-$TOOL_NAME: $*"
@@ -25,38 +26,50 @@ sort_versions() {
 
 list_github_tags() {
 	git ls-remote --tags --refs "$GH_REPO" |
-		grep -o 'refs/tags/.*' | cut -d/ -f3-
+		grep -o 'refs/tags/.*' | cut -d/ -f3- |
+		sed 's/^v//' # NOTE: You might want to adapt this sed to remove non-version strings from tags
 }
 
 list_all_versions() {
-	for tag in $(list_github_tags); do
-		# Filter tags
-		if [[ $tag =~ ^[0-9]+(\.[0-9]+)+$ ]]; then
-			printf "%s\n" "$tag"
+	list_github_tags | grep -v '^[^0-9]' # remove version starts with non-number
+}
+
+# exit 0: $1 is older than $2
+# exit 1: $1 is newer than $2
+# exit 2: $1 is equal $2
+is_older_version() {
+	local v1 v2
+	IFS=. read -r -a v1 <<<"$1"
+	IFS=. read -r -a v2 <<<"$2"
+
+	local i
+	for ((i = 0; i < ${#v1[@]} || i < ${#v2[@]}; i++)); do
+		if [ -z "${v1[i]:-}" ]; then # TODO: fix this
+			v1+=(0)
+		fi
+
+		if [ -z "${v2[i]:-}" ]; then
+			v2+=(0)
+		fi
+
+		if ((v1[i] < v2[i])); then
+			echo "$1 is older than $2"
+			return 0
+		elif ((v1[i] > v2[i])); then
+			echo "$1 is newer than $2"
+			return 1
 		fi
 	done
+
+	echo "$1 is equal to $2"
+	return 2
 }
 
 download_release() {
-	local version filename url os arch ext
+	local version filename url
 	version="$1"
 	filename="$2"
-	os="$(uname -s | tr '[:upper:]' '[:lower:]')"
-	arch="$(uname -m)"
-	ext="tar.gz"
-
-	if [[ "$arch" == "x86_64" && "$os" == "linux" ]]; then
-		arch="amd64"
-	elif [[ "$os" == "darwin" ]]; then
-		os="macOS"
-		ext="zip"
-	fi
-
-	if [[ "$os" == "macOS" ]]; then
-		url="$GH_REPO/releases/download/${version}/${TOOL_NAME}-${version}-${arch}-${os}.${ext}"
-	else
-		url="$GH_REPO/releases/download/${version}/${TOOL_NAME}-${version}-${os}-${arch}.${ext}"
-	fi
+	url="$3"
 
 	echo "* Downloading $TOOL_NAME release $version..."
 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
@@ -73,8 +86,15 @@ install_version() {
 
 	(
 		mkdir -p "$install_path"
-		cp -r "$ASDF_DOWNLOAD_PATH"/bin/* "$install_path"
+		cp -r "$ASDF_DOWNLOAD_PATH"/pandoc "$install_path"
+		if [ -e "$ASDF_DOWNLOAD_PATH"/pandoc-lua ]; then
+			cp -r "$ASDF_DOWNLOAD_PATH"/pandoc-lua "$install_path"
+		fi
+		if [ -e "$ASDF_DOWNLOAD_PATH"/pandoc-server ]; then
+			cp -r "$ASDF_DOWNLOAD_PATH"/pandoc-server "$install_path"
+		fi
 
+		# TODO: Assert pandoc executable exists.
 		local tool_cmd
 		tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
 		test -x "$install_path/$tool_cmd" || fail "Expected $install_path/$tool_cmd to be executable."
