@@ -8,6 +8,7 @@
 
 # Contents
 
+- [Contents](#contents)
 - [Dependencies](#dependencies)
 - [Install](#install)
 - [Contributing](#contributing)
@@ -16,8 +17,11 @@
 # Dependencies
 
 - `bash`, `curl`, `tar`, and [POSIX utilities](https://pubs.opengroup.org/onlinepubs/9699919799/idx/utilities.html).
+- `unzip` for MacOS.
 
 # Install
+
+*Please note versions before 2.0 are not installable and version 2.2.3 too.*
 
 Plugin:
 

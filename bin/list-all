@@ -8,4 +8,6 @@ plugin_dir=$(dirname "$(dirname "$current_script_path")")
 # shellcheck source=./lib/utils.bash
 source "${plugin_dir}/lib/utils.bash"
 
-list_all_versions | sort_versions | xargs echo
+list_all_versions |
+	awk -F. '{ if ($1 >= 2 && ($2 > 2 || ($2 == 2 && $3 != 3))) print $0 }' | # filter versions 2.0 and above, except 2.2.3
+	sort_versions | xargs echo
