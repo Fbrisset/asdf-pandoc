@@ -21,7 +21,8 @@
 
 # Install
 
-*Please note versions before 2.0 are not installable and version 2.2.3 too.*
+> [!NOTE]
+> Support only for versions 2.0 and above (except 2.2.3)
 
 Plugin:
 
